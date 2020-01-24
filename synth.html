@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<link href="synth.css" rel="stylesheet">	
+</head>
+<body>
+<div id="main">	
+frequency
+<input type="range" id="fIn" min="40" max="10000" value = "724" onchange="show()" />
+<span id="fOut"></span><br>
+mod.frequency
+<input type="range" id="mfIn" min="10" max="5000" value = "424" onchange="show()" />
+<span id="mfOut"></span><br>
+osc. type
+<input type="range" id="tIn" min="0" max="3" value = "0" onchange="show()" />
+<span id="tOut"></span><br>
+mode
+<input type="range" id="mIn" min="0" max="1" onchange="show()" />
+<span id="mOut"></span><br>
+mod. depth
+<input type="range" id="mdIn" min="0" max="100" onchange="show()" />
+<span id="mdOut"></span><br>
+attack
+<input type="range" id="aIn" min="0" max="100" onchange="show()" />
+<span id="aOut"></span><br>
+decay
+<input type="range" id="dcIn" min="0" max="100" onchange="show()" />
+<span id="dcOut"></span><br>
+sustain
+<input type="range" id="sIn" min="0" max="1000" onchange="show()" />
+<span id="sOut"></span><br>
+sustain value
+<input type="range" id="svIn" min="0" max="100" onchange="show()" />
+<span id="svOut"></span><br>
+release
+<input type="range" id="rIn" min="0" max="100" onchange="show()" />
+<span id="rOut"></span><br>
+cutoff
+<input type="range" id="cIn" min="0" max="22050" onchange="show()" />
+<span id="cOut"></span><br>
+resonance
+<input type="range" id="qIn" min="0" max="50" onchange="show()" />
+<span id="qOut"></span><br>
+filter type
+<input type="range" id="ftIn" min="0" max="3" value="0" onchange="show()" />
+<span id="ftOut"></span><br>
+volume
+<input type="range" id="vIn" min="0" max="10000" onchange="show()" />
+<span id="vOut"></span><br>
+<br>
+<button id = "play" onclick='beep(); show();'>Play</button>
+</div>     
+<div id="footer"> ...and nothing here. </div>                 	
+</body>
+<script type = "text/javascript">
+var totalCount = 4;
+function changeIt() 
+{
+var num = Math.ceil( Math.random() * totalCount );
+document.body.background = 'Zdjęcie0'+num+'.jpg';
+document.getElementById("footer").innerHTML = "";
+//console.log(document.body.background);
+}
+
+//changeIt(); // random background
+
+audioCtx = new(window.AudioContext || window.webkitAudioContext)();
+
+show();
+
+function show() {
+  frequency = document.getElementById("fIn").value;
+  document.getElementById("fOut").innerHTML = frequency + ' Hz';
+
+  switch (document.getElementById("tIn").value * 1) {
+    case 0: type = 'sine'; break;
+    case 1: type = 'square'; break;
+    case 2: type = 'sawtooth'; break;
+    case 3: type = 'triangle'; break;
+  }
+  document.getElementById("tOut").innerHTML = type;
+
+  switch (document.getElementById("mIn").value * 1) {
+    case 0: mode = 'AM'; break;
+    case 1: mode = 'FM'; break;
+  }
+  document.getElementById("mOut").innerHTML = mode;
+
+  switch (document.getElementById("ftIn").value * 1) {
+    case 0: f_type = 'lowpass'; break;
+    case 1: f_type = 'bandpass'; break;
+    case 2: f_type = 'highpass'; break;
+    case 3: f_type = 'notch'; break;
+    
+  }
+  document.getElementById("ftOut").innerHTML = f_type;
+ 
+  volume = document.getElementById("vIn").value / 10000;
+  document.getElementById("vOut").innerHTML = (10*Math.log(volume)).toFixed(4) + ' dB';
+
+
+  //duration = document.getElementById("dIn").value ;
+  //document.getElementById("dOut").innerHTML = duration + ' ms';
+
+  attack = document.getElementById("aIn").value;
+  document.getElementById("aOut").innerHTML = attack + ' ms';
+
+  decay = document.getElementById("dcIn").value;
+  document.getElementById("dcOut").innerHTML = decay + ' ms'; 
+  
+  sustain = document.getElementById("sIn").value;
+  document.getElementById("sOut").innerHTML = sustain + ' ms';
+
+  sustainVal = document.getElementById("svIn").value / 100;
+  document.getElementById("svOut").innerHTML = sustainVal;
+
+  release = document.getElementById("rIn").value;
+  document.getElementById("rOut").innerHTML = release + ' ms';
+
+  cutoff = document.getElementById("cIn").value;
+  document.getElementById("cOut").innerHTML = cutoff + ' Hz';
+
+  q = document.getElementById("qIn").value;
+  document.getElementById("qOut").innerHTML = q;
+
+  mod_depth = document.getElementById("mdIn").value;
+  document.getElementById("mdOut").innerHTML = mod_depth + '%';
+
+  mod_freq = document.getElementById("mfIn").value;
+  document.getElementById("mfOut").innerHTML = mod_freq + 'Hz';
+
+  	
+}
+
+function beep() {
+  var oscillator = audioCtx.createOscillator();
+  var gainNode = audioCtx.createGain();
+
+  var filter = audioCtx.createBiquadFilter();
+
+  var gainADSR = audioCtx.createGain();
+  var modDepthFM = audioCtx.createGain();
+  var modDepthAM = audioCtx.createGain();
+
+  var osc2 = audioCtx.createOscillator(); // osc2 AM
+  osc2.frequency.value = mod_freq; // osc2 AM Hz
+
+  var osc3 = audioCtx.createOscillator(); // osc3 FM
+  osc3.frequency.value = mod_freq; // osc3 FM Hz
+
+  //frequency = 440;
+  oscillator.frequency.value = frequency;
+
+  gainNode.gain.value = volume;
+
+  modDepthFM.gain.value = mod_depth*30; // FM mod. depth
+  modDepthAM.gain.value = mod_depth/100; // AM mod. depth
+  oscillator.type = type;
+
+ switch(mode)
+ {
+
+  case('AM'):
+  {
+  // AM
+
+  oscillator.connect(modDepthAM);
+
+  //gain = audioCtx.createGainNode(); // !?
+
+  osc2.connect(modDepthAM.gain); // osc2 AM
+
+    modDepthAM.connect(gainNode); // vol
+    gainNode.connect(gainADSR); // adsr
+   
+  //console.log(mode);
+
+  break;
+
+  } 
+
+  case('FM'):
+  {
+  // FM
+
+  osc3.connect(modDepthFM);
+
+  modDepthFM.connect(oscillator.frequency);
+
+  oscillator.connect(gainNode);  // vol
+  gainNode.connect(gainADSR);  // adsr
+  
+  //console.log(mode);
+
+  break;
+
+  }
+
+ }
+ 
+  // filter
+
+  filter.type = f_type;
+  filter.frequency.value = cutoff;
+  filter.Q.value = q;
+  //oscillator.connect(filter);
+    gainADSR.connect(filter); 
+    filter.connect(audioCtx.destination);
+
+
+  // osc2.type !
+
+  var ct = audioCtx.currentTime;
+  //console.log(ct);
+ 
+  if (ct % 2) changeIt();
+  //console.log(ct % 2);
+
+  //sustainVal = 0.5; 
+
+  //ct = ct/1000;
+
+  attack = attack/1000;
+  decay = decay/1000;
+  sustain = sustain/1000;
+  release = release/1000;
+
+  //volume = parseFloat(volume);
+
+
+
+  //osc3.start(0);
+
+  oscillator.start(0);
+    
+  if (mode == 'AM') osc2.start(0); // osc2 AM start
+  
+  if (mode == 'FM') osc3.start(0); // osc3 FM start
+                                                    //ADSR
+  gainADSR.gain.setValueAtTime(0,ct);
+  gainADSR.gain.linearRampToValueAtTime(1,ct+attack);
+  gainADSR.gain.linearRampToValueAtTime(sustainVal,ct+attack+decay);
+  gainADSR.gain.linearRampToValueAtTime(sustainVal,ct+attack+decay+sustain);
+  gainADSR.gain.linearRampToValueAtTime(0,ct+attack+decay+sustain+release);
+  
+
+   oscillator.stop(ct+attack+decay+sustain+release);
+   if (mode == 'AM') osc2.stop(ct+attack+decay+sustain+release);
+   if (mode == 'FM') osc3.stop(ct+attack+decay+sustain+release);
+
+  //console.log(gainNode.gain);
+
+}
+</script>
+</html>
