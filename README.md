@@ -7,4 +7,4 @@ simple WebAudio synthesizer with carrier and modulator frequency adjust,
 with sustain value parameter, filter with lowpass, bandpass, highpass and
 notch modes, cutoff and resonance frequency control, volume power in dB.
 
-working demonstration available <a href = "https://blitwinski.github.io/AMFMsynth/synth.html" target="_blank">here</a>.
+working demonstration available <a target = "_blank" href = "https://blitwinski.github.io/AMFMsynth/synth.html">here</a>.
